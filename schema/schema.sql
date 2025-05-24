@@ -4,7 +4,7 @@ Team Fire 1: Aune Mitchell, Phillip Huynh
 
 Online Marketplace Schema
 */
-	
+
 SET FOREIGN_KEY_CHECKS = 0; -- Disable FK_CHECK to drop existing tables w/o Error 3730
 DROP DATABASE IF EXISTS ecommerce;
 SET FOREIGN_KEY_CHECKS = 1; -- Re-enable FK_Check
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS Products (
     Department      VARCHAR(15)         NULL,
     BuyPrice        DECIMAL(7, 2)       NOT NULL,
     SellPrice       DECIMAL(7, 2)       NOT NULL,
-    CONSTRAINT 		ProductsPK  		PRIMARY KEY (ProductID),
+    CONSTRAINT      ProductsPK          PRIMARY KEY (ProductID),
     CONSTRAINT      PositivePrice       CHECK ((BuyPrice > 0) AND (SellPrice > 0))
 );
 
@@ -29,12 +29,12 @@ CREATE TABLE IF NOT EXISTS Inventory (
     CONSTRAINT      InventoryPK         PRIMARY KEY (ProductID),
     CONSTRAINT      InventoryProductsFK FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 	    ON UPDATE CASCADE
-		ON DELETE CASCADE,
+	    ON DELETE CASCADE,
     CONSTRAINT      InventoryQuantityCheck   CHECK (Quantity >= 0)
     );
 
 CREATE TABLE Users (
-	UserID          INTEGER             AUTO_INCREMENT NOT NULL UNIQUE,
+    UserID          INTEGER             AUTO_INCREMENT NOT NULL UNIQUE,
     FirstName       VARCHAR(50)         NOT NULL,
     LastName        VARCHAR(50)         NOT NULL,
     Email           VARCHAR(255)        NOT NULL UNIQUE,
@@ -56,19 +56,19 @@ CREATE TABLE Buyers (
 );
 
 CREATE TABLE Sellers (
-	UserID          INTEGER             NOT NULL UNIQUE,
+    UserID          INTEGER             NOT NULL UNIQUE,
     StoreName       VARCHAR(50)         NOT NULL,
     CONSTRAINT      SellersPK           PRIMARY KEY (UserID),
     CONSTRAINT      SellersUsersFK      FOREIGN KEY (UserID) REFERENCES Users(UserID)
-		ON UPDATE CASCADE
-		ON DELETE CASCADE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
 -- Transactions table
 CREATE TABLE IF NOT EXISTS Transactions (
-    TransactionID	INTEGER				NOT NULL AUTO_INCREMENT,
+    TransactionID   INTEGER             NOT NULL AUTO_INCREMENT,
     ProductID       INTEGER             NOT NULL,
-    BuyerID			INTEGER				NOT NULL,
+    BuyerID         INTEGER             NOT NULL,
     SellerID		INTEGER				NOT NULL,
     Quantity 		SMALLINT			NOT NULL,
     DateTime		DATETIME	 		NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -94,10 +94,10 @@ CREATE TABLE IF NOT EXISTS Transactions (
 
 -- Reviews table
 CREATE TABLE IF NOT EXISTS Reviews (
-    ReviewID		INTEGER				NOT NULL AUTO_INCREMENT,
-    ProductID		INTEGER				NOT NULL,
-    UserID			INTEGER				NOT NULL,
-    Rating 			TINYINT				NOT NULL,
+    ReviewID        INTEGER				NOT NULL AUTO_INCREMENT,
+    ProductID       INTEGER				NOT NULL,
+    UserID          INTEGER				NOT NULL,
+    Rating          SMALLINT            NOT NULL,
     Review 			VARCHAR(4000)		NULL,
     DateTime		DATETIME			NOT NULL DEFAULT CURRENT_TIMESTAMP,
     -- ReviewsPK confirms that ReviewID is a primary key
@@ -105,12 +105,12 @@ CREATE TABLE IF NOT EXISTS Reviews (
     -- ReviewsProductsFK confirms that ProductID is a foreign key
     -- If ProductID is updated or deleted in Products,
     -- associated reviews are also updated or deleted
-    CONSTRAINT 		ReviewsProductsFK	FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+    CONSTRAINT 		ReviewsProductsFK   FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     -- ReviewsUsersFK confirms that UserID is a foreign key
     -- If UserID is updated or deleted in Users, the review is also updated or deleted
-    CONSTRAINT 		ReviewsUsersFK		FOREIGN KEY (UserID) REFERENCES Users(UserID)
+    CONSTRAINT 		ReviewsUsersFK      FOREIGN KEY (UserID) REFERENCES Users(UserID)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
     -- ReviewUniqueCheck confirms that ProductID and UserID combined are unique
@@ -121,10 +121,10 @@ CREATE TABLE IF NOT EXISTS Reviews (
 
 -- Promotions table
 CREATE TABLE IF NOT EXISTS Promotions (
-    PromotionID		INTEGER				NOT NULL AUTO_INCREMENT,
-    UserID			INTEGER				NOT NULL,
-    Subject			VARCHAR(50)			NOT NULL,
-    Body			VARCHAR(4000)		NOT NULL,
+    PromotionID     INTEGER             NOT NULL AUTO_INCREMENT,
+    UserID			INTEGER             NOT NULL,
+    Subject			VARCHAR(50)         NOT NULL,
+    Body			VARCHAR(4000)       NOT NULL,
     DateTime 		DATETIME			NOT NULL DEFAULT CURRENT_TIMESTAMP,
     -- PromotionsPK confirms that PromotionID is a primary key
     CONSTRAINT 		PromotionsPK		PRIMARY KEY (PromotionID),

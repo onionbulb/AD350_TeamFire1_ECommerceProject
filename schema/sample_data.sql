@@ -66,11 +66,11 @@ VALUES  (1, 'ValueMart'),
         (3, 'SmartShop'),
         (4, 'Budget Bazaar'),
         (5, 'Everyday Essentials'),
-	    (6, 'SuperStore'),
-	    (7, 'Urban Goods'),
-	    (8, 'Cloud9'),
-	    (9, 'RainbowMart'),
-	    (10, 'Goodwill');
+        (6, 'SuperStore'),
+        (7, 'Urban Goods'),
+        (8, 'Cloud9'),
+        (9, 'RainbowMart'),
+        (10, 'Goodwill');
 
 -- Add rows to Transactions
 INSERT INTO Transactions (ProductID, BuyerID, SellerID, Quantity)
