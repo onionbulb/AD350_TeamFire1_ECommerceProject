@@ -386,26 +386,25 @@ def main():
     while user_exit is False:
         display_menu()
         user_menu_choice = get_user_menu_choice(1, 8)
-        match user_menu_choice:
-            case 1:
-                list_products_in_inventory(db_cursor)
-            case 2:
-                create_new_product(db_cursor)
-            case 3:
-                modify_product_quantity(db_cursor)
-            case 4:
-                delete_product_from_inventory(db_cursor)
-            case 5:
-                list_most_popular_products(db_cursor)
-            case 6:
-                list_least_popular_products(db_cursor)
-            case 7:
-                list_absent_users(db_cursor)
-            case 8:
-                print("\nThank you for visiting! Exiting...\n")
-                db_cursor.close()
-                db_connection.close()
-                return
+        if user_menu_choice == 1:
+            list_products_in_inventory(db_cursor)
+        elif user_menu_choice == 2:
+            create_new_product(db_cursor)
+        elif user_menu_choice == 3:
+            modify_product_quantity(db_cursor)
+        elif user_menu_choice == 4:
+            delete_product_from_inventory(db_cursor)
+        elif user_menu_choice == 5:
+            list_most_popular_products(db_cursor)
+        elif user_menu_choice == 6:
+            list_least_popular_products(db_cursor)
+        elif user_menu_choice == 7:
+            list_absent_users(db_cursor)
+        elif user_menu_choice == 8:
+            print("\nThank you for visiting! Exiting...\n")
+            db_cursor.close()
+            db_connection.close()
+            return
 
 
 if __name__ == "__main__":
