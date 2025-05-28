@@ -1,10 +1,11 @@
+import os
 import mysql.connector
 from mysql.connector import errorcode
 
 try:
     testConnection = mysql.connector.connect(
         user = 'testuser',         # Insert a MySQL username for access
-        password = 'password',     # Insert password associated with user
+        password = os.environ.get('MYSQL_PASSWORD'),     # Use env variable MYSQL_PASSWORD value
         host = '127.0.0.1',        # DB address to local host/machine
         database = "ecommerce"     # See README.md to create a local user for access
     )
