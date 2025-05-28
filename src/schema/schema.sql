@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS Products (
 );
 
 CREATE TABLE IF NOT EXISTS Inventory (
-    ProductID       INTEGER             NOT NULL,
+    ProductID       INTEGER             NOT NULL UNIQUE,
     Quantity        SMALLINT            NOT NULL,
     CONSTRAINT      InventoryPK         PRIMARY KEY (ProductID),
     CONSTRAINT      InventoryProductsFK FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
