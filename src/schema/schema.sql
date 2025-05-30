@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS Products (
     Brand           VARCHAR(20)         NOT NULL,
     Description     VARCHAR(50)         NOT NULL,
     Department      VARCHAR(15)         NULL,
-    BuyPrice        DECIMAL(7, 2)       NOT NULL,
-    SellPrice       DECIMAL(7, 2)       NOT NULL,
+    BuyPrice        DECIMAL(8, 2)       NOT NULL,
+    SellPrice       DECIMAL(8, 2)       NOT NULL,
     CONSTRAINT      ProductsPK          PRIMARY KEY (ProductID),
     CONSTRAINT      PositivePrice       CHECK ((BuyPrice > 0) AND (SellPrice > 0))
 );
