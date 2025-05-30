@@ -21,10 +21,6 @@ BEGIN
     WHERE ProductID = product;
 END $
 
-DELIMITER ;
-
-DELIMITER $
-
 -- Stored procedure for creating a new product
 CREATE PROCEDURE CreateNewProduct(
     IN productName VARCHAR(20),
@@ -38,10 +34,6 @@ BEGIN
     INSERT INTO Products (Name, Brand, Description, Department, BuyPrice, SellPrice)
     VALUES  (productName, productBrand, productDescription, productDepartment, productBuyPrice, productSellPrice);
 END $
-
-DELIMITER ;
-
-DELIMITER $
 
 -- Stored procedure for modifying a product's quantity in inventory
 CREATE PROCEDURE ModifyProductInventoryQuantity(
