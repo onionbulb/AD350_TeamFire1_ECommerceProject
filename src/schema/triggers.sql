@@ -27,25 +27,6 @@ BEGIN
     END IF;
 END $
 
-
--- Trigger updates inventory quantity when inserting
-CREATE TRIGGER AfterProductInsert
-AFTER INSERT ON Products
-FOR EACH ROW
-BEGIN
-    -- Check if new ProductID is already in inventory
-    DECLARE productExists BOOLEAN;
-    SELECT COUNT(*) INTO productExists
-    FROM Inventory
-    WHERE ProductID = NEW.ProductID;
-
-    -- If new ProductID isn't in inventory, add it with a default quantity of 0
-    IF NOT productExists THEN
-        INSERT INTO Inventory (ProductID, Quantity)
-        VALUES (NEW.ProductID, 0);
-    END IF;
-END $
-
 -- Trigger blocks transactions if quantity is higher than the available inventory
 CREATE TRIGGER PreventInvalidQuantityTransaction
 BEFORE INSERT ON Transactions

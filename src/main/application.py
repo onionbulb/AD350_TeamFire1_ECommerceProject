@@ -47,7 +47,7 @@ def display_menu():
     print("\n----------------------------")
     print("Welcome to our marketplace!\n")
     print("Please select an option from the following menu:")
-    print("1. List which products we currently have in inventory.")
+    print("1. Get a list of the products in inventory.")
     print("2. Create a new product.")
     print("3. Modify the quantity of a product in inventory.")
     print("4. Delete a product from inventory.")
@@ -320,7 +320,7 @@ def create_new_product(db_cursor: MySQLCursor, db_connection: MySQLConnection):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nCreate new products placeholder.")
+    print("\nCreate new product form:")
     name = get_validated_string("name", True, 20)
     brand = get_validated_string("brand", True, 20)
     description = get_validated_string("description", True, 50)
@@ -353,7 +353,7 @@ def modify_product_quantity(db_cursor: MySQLCursor, db_connection: MySQLConnecti
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nModify product quantity placeholder.")
+    print("\nModify product quantity form:")
     product_id = get_product_id(db_cursor)
     valid_quantity = False
     while valid_quantity is False:
@@ -390,7 +390,7 @@ def delete_product_from_inventory(db_cursor: MySQLCursor, db_connection: MySQLCo
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nDelete product from inventory placeholder.")
+    print("\nDelete product from inventory form:")
     product_id = get_product_id(db_cursor)
     print(f"Product id: {product_id}")
     if confirm_change():
@@ -405,7 +405,7 @@ def list_most_popular_products(db_cursor: MySQLCursor):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nList most popular products placeholder.")
+    print("\nList of most popular products for a datetime range:")
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
@@ -420,7 +420,7 @@ def list_least_popular_products(db_cursor: MySQLCursor):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nList least popular products placeholder.")
+    print("\nList of least popular products for a datetime range:")
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
@@ -436,7 +436,8 @@ def list_absent_users(db_cursor: MySQLCursor):
     Args:
         db_cursor (MySQLCursor): The database cursor.
     """
-    print("\nList absent users placeholder.")
+    print("\nList of users who haven't purchased something in 90 days"
+          " and their normally purchased products:")
 
 
 def main():
