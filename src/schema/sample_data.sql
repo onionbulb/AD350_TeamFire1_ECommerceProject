@@ -31,7 +31,8 @@ VALUES  (1, 24),
         (7, 190),
         (8, 254),
         (9, 15),
-        (10, 174);
+        (10, 174)
+ON DUPLICATE KEY UPDATE Quantity = Quantity + VALUES(Quantity);
 
 -- Add rows to Users
 INSERT INTO Users (FirstName, LastName, Email, Street, City, State, ZipCode, Country)
@@ -84,7 +85,7 @@ INSERT INTO Transactions (ProductID, BuyerID, SellerID, Quantity, DateTime)
 VALUES  (5, 6, 5, 100, '2025-05-23 06:00:00'),
         (6, 10, 4, 40, '2025-05-22 08:30:00'),
         (8, 4, 6, 20, '2025-05-22 08:30:00'),
-        (9, 5, 3, 50, '2025-05-21 16:45:30'),
+        (9, 5, 3, 10, '2025-05-21 16:45:30'),
         (10, 6, 9, 30, '2025-05-21 22:38:42');
 
 -- Add rows to Reviews

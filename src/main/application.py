@@ -47,7 +47,7 @@ def display_menu():
     print("\n----------------------------")
     print("Welcome to our marketplace!\n")
     print("Please select an option from the following menu:")
-    print("1. List which products we currently have in inventory.")
+    print("1. Get a list of the products in inventory.")
     print("2. Create a new product.")
     print("3. Modify the quantity of a product in inventory.")
     print("4. Delete a product from inventory.")
@@ -81,7 +81,8 @@ def get_user_menu_choice(lowest_choice: int, highest_choice: int) -> int:
             if (user_menu_int < lowest_choice or user_menu_int > highest_choice):
                 print(f"\nChoice must be a number between {lowest_choice} " \
                       f"and {highest_choice} inclusive.\n")
-            valid = True
+            else:
+                valid = True
         except ValueError:
             print("\nChoice must be an integer.")
     return user_menu_int
@@ -124,12 +125,13 @@ def get_datetime_range() -> tuple[str, str]:
     return (str(start_datetime), str(end_datetime))
 
 
-def validate_price(price: str) -> bool:
+def validate_price(price: str, max_amount: float) -> bool:
     """
     Validates the given price.
     
     Args:
         price (str): The price in string form.
+        max_amount (float): The max supported price.
 
     Returns:
         bool: True if the given string is a valid price, otherwise false.
@@ -140,11 +142,76 @@ def validate_price(price: str) -> bool:
         return False
     try:
         price_float = float(price)
-        if price_float <= 0:
+        if price_float <= 0 or price_float > max_amount:
             return False
     except ValueError:
         return False
     return True
+
+
+def get_validated_price(name: str, max_amount: float) -> float:
+    """
+    Gets a validated price from the user.
+
+    Args:
+        name: The name of the price type.
+        max_amount: The max allowed amount for the price.
+    """
+
+    while True:
+        print(f"\nPlease enter a {name} price:")
+        value = input()
+        if validate_price(value, max_amount):
+            return value
+        print(f"\nPrices must be valid (positive, up to two decimal points,"
+              f" and with a max value of {max_amount}).")
+
+
+def validate_string(user_string: str, required: bool, char_limit: int) -> bool:
+    """
+    Validates a string based on the character limit.
+
+    Args:
+        user_string (str): The string to validate.
+        required (bool): Whether the string is required (not empty)
+        char_limit (int): The max allowed length for the string.
+
+    Returns:
+        bool: True if the string is valid, otherwise false.
+    """
+
+    if len(user_string) <= char_limit:
+        if (required and len(user_string) == 0):
+            return False
+        return True
+    return False
+
+
+def get_validated_string(name: str, required: bool, char_limit: int) -> str:
+    """
+    Gets a validated string from the user.
+
+    Args:
+        name: The name of the string type.
+        required (bool): Whether the string is required (not empty)
+        char_limit (int): The max allowed length for the string.
+
+    Returns:
+        str: The validated string.
+    """
+
+    while True:
+        print(f"\nPlease enter a {name}:")
+        value = input()
+        if validate_string(value, required, char_limit):
+            if len(value) == 0:
+                return None
+            return value
+        null_warning = ""
+        if required:
+            null_warning = "Input cannot be null (empty)."
+        print(f"\nInvalid input. Max character limit is {char_limit}."
+              f" {null_warning}")
 
 
 def get_product_id(db_cursor: MySQLCursor) -> int:
@@ -160,7 +227,7 @@ def get_product_id(db_cursor: MySQLCursor) -> int:
 
     valid_product = False
     while valid_product is False:
-        print("Enter a product ID:")
+        print("\nEnter a product ID:")
         product_id = input()
         try:
             product_id_int = int(product_id)
@@ -171,7 +238,7 @@ def get_product_id(db_cursor: MySQLCursor) -> int:
             if validate_product_in_inventory(db_cursor, product_id_int):
                 valid_product = True
             else:
-                print("\nProduct id not found in inventory.")
+                print("\nInvalid product ID.")
     return product_id_int
 
 
@@ -186,20 +253,17 @@ def validate_product_in_inventory(db_cursor: MySQLCursor, product_id: int) -> bo
     Returns:
         bool: True if the product id is in the inventory table, otherwise false.
     """
-    query = "SELECT COUNT(*) FROM Inventory WHERE ProductID = %s"
-    value = (product_id,)
+
     try:
-        db_cursor.execute(query, value)
-        results = db_cursor.fetchall()
-        if not results:
-            print("Product ID is not in the inventory.")
-            return False
-        if results[0][0] == 1:
+        args = [product_id, 0]
+        results = db_cursor.callproc('CheckProductInInventory', args)
+        num_product = results[1]
+        if num_product == 1:
             return True
+        return False
     except mysql.connector.Error as err:
         print(f"Error querying Products table: {err}")
         return False
-    return False
 
 
 def confirm_change() -> bool:
@@ -230,12 +294,11 @@ def list_products_in_inventory(db_cursor: MySQLCursor):
     Args:
         db_cursor (MySQLCursor): The database cursor.
     """
+
     print("\nList of products in the inventory:")
-    # This is just an example, could move this to a stored procedure if we want
-    # Just wanted to confirm we can pull data properly and that cursor reuse is ok
-    query = "SELECT Inventory.ProductID, Products.Name, Inventory.Quantity \
-            FROM Inventory, Products WHERE Inventory.ProductID = Products.ProductID"
     try:
+        query = "SELECT Inventory.ProductID, Products.Name, Inventory.Quantity \
+                FROM Inventory INNER JOIN Products ON Inventory.ProductID = Products.ProductID"
         db_cursor.execute(query)
         results = db_cursor.fetchall()
         if not results:
@@ -249,7 +312,7 @@ def list_products_in_inventory(db_cursor: MySQLCursor):
         print(f"Error querying Products table: {err}")
 
 
-def create_new_product(db_cursor: MySQLCursor):
+def create_new_product(db_cursor: MySQLCursor, db_connection: MySQLConnection):
     """
     Creates a new product.
     
@@ -257,36 +320,32 @@ def create_new_product(db_cursor: MySQLCursor):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nCreate new products placeholder.")
-    valid = False
-    while valid is False:
-        print("\nPlease enter a product name:")
-        name = input()
-        print("\nPlease enter a brand:")
-        brand = input()
-        print("\nPlease enter a department or leave blank and press enter for no department:")
-        department = input()
-        # Handle null department
-        if len(department) == 0:
-            department = "NULL"
-        valid_price = False
-        while valid_price is False:
-            print("\nPlease enter a buy price:")
-            buy_price = input()
-            print("\nPlease enter a sell price:")
-            sell_price = input()
-            if (validate_price(buy_price) is True and validate_price(sell_price) is True):
-                valid_price = True
-                valid = True
-            else:
-                print("\nPrices must be valid.")
-    print(f"\nName: {name}, brand: {brand}, department: {department}, " \
-          f"buy price: {buy_price}, sell price: {sell_price}\n")
+    print("\nCreate new product form:")
+    name = get_validated_string("name", True, 20)
+    brand = get_validated_string("brand", True, 20)
+    description = get_validated_string("description", True, 50)
+    department = get_validated_string("department", False, 15)
+    buy_price = get_validated_price("buy", 999999.99)
+    sell_price = get_validated_price("sell", 999999.99)
+
+    # Confirm selection
+    print("\nYou selected:")
+    print(f"Name: {name}, brand: {brand}, description: {description},"
+          f" department: {department}, buy price: {buy_price}, sell price: {sell_price}\n")
     if confirm_change():
-        print("\nAdd new product placeholder")
+        try:
+            args = [name, brand, description, department, buy_price, sell_price]
+            db_cursor.callproc('CreateNewProduct', args)
+            # Commit the change
+            db_connection.commit()
+            print("\nProduct added successfully.")
+        except mysql.connector.Error as err:
+            print(f"\nError adding product: {err}")
+            # Undo change if commit fails
+            db_connection.rollback()
 
 
-def modify_product_quantity(db_cursor: MySQLCursor):
+def modify_product_quantity(db_cursor: MySQLCursor, db_connection: MySQLConnection):
     """
     Modifies the quantity of a product in inventory.
     
@@ -294,7 +353,7 @@ def modify_product_quantity(db_cursor: MySQLCursor):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nModify product quantity placeholder.")
+    print("\nModify product quantity form:")
     product_id = get_product_id(db_cursor)
     valid_quantity = False
     while valid_quantity is False:
@@ -311,10 +370,19 @@ def modify_product_quantity(db_cursor: MySQLCursor):
                 valid_quantity = True
     print(f"\nProduct ID: {product_id}, new quantity: {product_quantity_int}")
     if confirm_change():
-        print("Modify the product quantity placeholder")
+        try:
+            args = [product_id, product_quantity_int]
+            db_cursor.callproc('ModifyProductInventoryQuantity', args)
+            # Commit the change
+            db_connection.commit()
+            print(f"Product ID {product_id} inventory quantity updated to {product_quantity_int} successfully.")
+        except mysql.connector.Error as err:
+            print(f"\nError updating product ID {product_id} inventory quantity: {err}")
+            # Undo change if commit fails
+            db_connection.rollback()
 
 
-def delete_product_from_inventory(db_cursor: MySQLCursor):
+def delete_product_from_inventory(db_cursor: MySQLCursor, db_connection: MySQLConnection):
     """
     Delete a product from inventory.
     
@@ -322,7 +390,7 @@ def delete_product_from_inventory(db_cursor: MySQLCursor):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nDelete product from inventory placeholder.")
+    print("\nDelete product from inventory form:")
     product_id = get_product_id(db_cursor)
     print(f"Product id: {product_id}")
     if confirm_change():
@@ -337,7 +405,7 @@ def list_most_popular_products(db_cursor: MySQLCursor):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nList most popular products placeholder.")
+    print("\nList of most popular products for a datetime range:")
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
@@ -352,7 +420,7 @@ def list_least_popular_products(db_cursor: MySQLCursor):
         db_cursor (MySQLCursor): The database cursor.
     """
 
-    print("\nList least popular products placeholder.")
+    print("\nList of least popular products for a datetime range:")
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
@@ -368,7 +436,8 @@ def list_absent_users(db_cursor: MySQLCursor):
     Args:
         db_cursor (MySQLCursor): The database cursor.
     """
-    print("\nList absent users placeholder.")
+    print("\nList of users who haven't purchased something in 90 days"
+          " and their normally purchased products:")
 
 
 def main():
@@ -389,11 +458,11 @@ def main():
         if user_menu_choice == 1:
             list_products_in_inventory(db_cursor)
         elif user_menu_choice == 2:
-            create_new_product(db_cursor)
+            create_new_product(db_cursor, db_connection)
         elif user_menu_choice == 3:
-            modify_product_quantity(db_cursor)
+            modify_product_quantity(db_cursor, db_connection)
         elif user_menu_choice == 4:
-            delete_product_from_inventory(db_cursor)
+            delete_product_from_inventory(db_cursor, db_connection)
         elif user_menu_choice == 5:
             list_most_popular_products(db_cursor)
         elif user_menu_choice == 6:

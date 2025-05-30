@@ -36,3 +36,9 @@ FLUSH PRIVILEGES; # To apply changes
 
 SELECT user, host FROM mysql.user; # To view all users
 ````
+
+5. If the database doesn't already exist, set it up in MySQLWorkbench by running the following files in this order:
+    - schema.sql
+    - stored_procedures.sql
+    - triggers.sql
+    - sample_data.sql
