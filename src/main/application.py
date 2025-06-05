@@ -394,7 +394,16 @@ def delete_product_from_inventory(db_cursor: MySQLCursor, db_connection: MySQLCo
     product_id = get_product_id(db_cursor)
     print(f"Product id: {product_id}")
     if confirm_change():
-        print("Delete the product")
+        try:
+            args = [product_id]
+            db_cursor.callproc('DeleteProduct', args)
+            # Commit the change
+            db_connection.commit()
+            print(f"Product ID {product_id} deleted from inventory successfully.")
+        except mysql.connector.Error as err:
+            print(f"\nError deleting product ID {product_id} from inventory: {err}")
+            # Undo change if commit fails
+            db_connection.rollback()
 
 
 def list_most_popular_products(db_cursor: MySQLCursor):
@@ -409,7 +418,22 @@ def list_most_popular_products(db_cursor: MySQLCursor):
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
-    print(f"Start datetime: {start}, end datetime: {end}")
+    print(f"\nStart datetime: {start}, end datetime: {end}")
+    try:
+        args = [start, end]
+        query = "CALL GetMostPopularProducts(%s, %s)"
+        db_cursor.execute(query, args)
+        results = db_cursor.fetchall()
+        
+        if not results:
+            print("\nNo available products to show.")
+        else:
+            print("\nProductID      Name                      Brand      Description            SellPrice")
+            print("------------------------------------------------------------------------------------")
+            for row in results:
+                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")       
+    except mysql.connector.Error as err:
+            print(f"\nError retrieving most popular products from a time range: {err}")
 
 
 def list_least_popular_products(db_cursor: MySQLCursor):
@@ -424,8 +448,22 @@ def list_least_popular_products(db_cursor: MySQLCursor):
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
-    print(start)
-    print(end)
+    print(f"\nStart datetime: {start}, end datetime: {end}")
+    try:
+        args = [start, end]
+        query = "CALL GetLeastPopularProducts(%s, %s)"
+        db_cursor.execute(query, args)
+        results = db_cursor.fetchall()
+
+        if not results:
+            print("\nNo available products to show.")
+        else:
+            print("\nProductID      Name                      Brand      Description            SellPrice")
+            print("------------------------------------------------------------------------------------")
+            for row in results:
+                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")       
+    except mysql.connector.Error as err:
+            print(f"\nError retrieving least popular products from a time range: {err}")
 
 
 def list_absent_users(db_cursor: MySQLCursor):
@@ -438,7 +476,21 @@ def list_absent_users(db_cursor: MySQLCursor):
     """
     print("\nList of users who haven't purchased something in 90 days"
           " and their normally purchased products:")
+    try:
+        query = "CALL GetInactiveUsersAndCommonPurchases()"
+        db_cursor.execute(query)
+        results = db_cursor.fetchall()
 
+        if not results:
+            print("\nNo inactive users to view")
+        else:
+            print("UserID   FirstName   LastName    LastPurchase   ProductID   Name      Brand   NumOfPurchases")
+            print("--------------------------------------------------------------------------------------------")
+            for row in results:
+                print(f"{row[0]:<8} {row[1]:<11} {row[2]:<11} {str(row[3]).split(' ')[0]:<14} {row[4]:<11} {row[5]:<9} {row[6]:<7} {row[7]:<8}")       
+    except mysql.connector.Error as err:
+            print(f"\nError retrieving least popular products from a time range: {err}")
+    
 
 def main():
     """Main application driver."""

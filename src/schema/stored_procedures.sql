@@ -47,3 +47,91 @@ BEGIN
 END $
 
 DELIMITER ;
+
+DELIMITER $
+
+-- Stored procedure for deleting a product from the database
+CREATE PROCEDURE DeleteProduct(
+	IN productToDelete INT
+)
+BEGIN
+	DELETE FROM Products
+    WHERE ProductID = productToDelete;
+END $
+
+DELIMITER ;
+
+DELIMITER $
+
+-- Get the most popular products for a given time range
+CREATE PROCEDURE GetMostPopularProducts(
+	IN rangeStart DATE,
+    IN rangeEnd DATE 
+)
+BEGIN
+	SELECT P.ProductID, P.Name, P.Brand, P.Description, P.SellPrice
+    FROM Products AS P
+    INNER JOIN Transactions AS T ON P.ProductID = T.ProductID
+    WHERE T.DateTime BETWEEN rangeStart AND rangeEND
+    GROUP BY T.ProductID
+    HAVING COUNT(T.ProductID) >= 3; -- 3 or more sales is considered popular
+END $
+
+DELIMITER ;
+
+DELIMITER $
+
+-- Get the least popular products for a given time range
+CREATE PROCEDURE GetLeastPopularProducts(
+	IN rangeStart DATE,
+    IN rangeEnd DATE 
+)
+BEGIN
+	SELECT P.ProductID, P.Name, P.Brand, P.Description, P.SellPrice
+    FROM Products AS P
+    INNER JOIN Transactions AS T ON P.ProductID = T.ProductID
+    WHERE T.DateTime BETWEEN rangeStart AND rangeEND
+    GROUP BY T.ProductID
+    HAVING COUNT(T.ProductID) <= 1; -- 1 or less sales is considered unpopular
+END $
+
+DELIMITER ;
+
+DELIMITER $
+
+-- Get inactive users and their commonly purchased products
+CREATE PROCEDURE GetInactiveUsersAndCommonPurchases()
+BEGIN
+	-- CTE to retrieve last purchase date of users
+    WITH GetLastPurchase AS (
+        SELECT T.BuyerID, MAX(T.DateTime) AS LastPurchase
+		FROM Transactions AS T
+		GROUP BY T.BuyerID
+    ),
+    
+    -- CTE to get inactive users
+	GetInactiveUsers AS (
+		SELECT U.UserID, U.FirstName, U.LastName, LP.LastPurchase
+        FROM Users AS U
+        LEFT JOIN GetLastPurchase AS LP ON U.UserID = LP.BuyerID
+        -- Get the date 2 months ago and check if the user's
+        -- last purchase date is older than it
+        WHERE LP.LastPurchase < DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
+    ),
+    
+    -- CTE to get a user's most commonly purchased item
+    GetCommonPurchase AS (
+		SELECT T.ProductID, T.BuyerID, COUNT(*) AS NumOfPurchases
+		FROM Users AS U
+		INNER JOIN Transactions AS T ON U.UserID = T.BuyerID
+		GROUP BY T.ProductID, T.BuyerID 
+	)
+    
+	SELECT U.UserID, U.FirstName, U.LastName, U.LastPurchase, CP.ProductID, P.Name, P.Brand, CP.NumOfPurchases
+    FROM GetInactiveUsers AS U
+    INNER JOIN GetCommonPurchase AS CP ON U.UserID = CP.BuyerID
+    LEFT JOIN Products AS P ON CP.ProductID = P.ProductID;
+    
+END $
+
+DELIMITER ;

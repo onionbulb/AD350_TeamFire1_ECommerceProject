@@ -45,4 +45,15 @@ BEGIN
     END IF;
 END $
 
+-- Trigger updates inventory quantity when a transaction is made
+CREATE TRIGGER UpdateQuanityAfterTransaction
+AFTER INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+	-- Update Quantity when ProductID match the ProductID used in the transaction
+    UPDATE Inventory
+    SET Quantity = (Quantity - NEW.Quantity)
+    WHERE ProductID = NEW.PRODUCTID;
+END $
+
 DELIMITER ;
