@@ -53,7 +53,7 @@ BEGIN
 	-- Update Quantity when ProductID match the ProductID used in the transaction
     UPDATE Inventory
     SET Quantity = (Quantity - NEW.Quantity)
-    WHERE ProductID = NEW.PRODUCTID;
+    WHERE ProductID = NEW.ProductID;
 END $
 
 DELIMITER ;
