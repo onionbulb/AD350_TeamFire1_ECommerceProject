@@ -46,7 +46,7 @@ BEGIN
 END $
 
 -- Trigger updates inventory quantity when a transaction is made
-CREATE TRIGGER UpdateQuanityAfterTransaction
+CREATE TRIGGER UpdateQuantityAfterTransaction
 AFTER INSERT ON Transactions
 FOR EACH ROW
 BEGIN
