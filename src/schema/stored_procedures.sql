@@ -85,36 +85,6 @@ BEGIN
     LIMIT 5;
 END $
 
--- Get the most popular products for a given time range
-CREATE PROCEDURE GetMostPopularProducts(
-	IN rangeStart DATE,
-    IN rangeEnd DATE 
-)
-BEGIN
-	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount
-    FROM Products AS P
-    INNER JOIN Transactions AS T ON P.ProductID = T.ProductID
-    WHERE T.DateTime BETWEEN rangeStart AND rangeEnd
-    GROUP BY P.ProductID
-    ORDER BY TransactionCount DESC
-    LIMIT 5;
-END $
-
--- Get the least popular products for a given time range
-CREATE PROCEDURE GetLeastPopularProducts(
-	IN rangeStart DATE,
-    IN rangeEnd DATE 
-)
-BEGIN
-	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount    
-    FROM Products AS P
-    INNER JOIN Transactions AS T ON P.ProductID = T.ProductID
-    WHERE T.DateTime BETWEEN rangeStart AND rangeEnd
-    GROUP BY P.ProductID
-    ORDER BY TransactionCount
-    LIMIT 5;
-END $
-
 -- Get inactive users and their commonly purchased products
 CREATE PROCEDURE GetInactiveUsersAndCommonPurchases()
 BEGIN
