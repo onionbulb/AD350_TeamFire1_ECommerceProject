@@ -475,20 +475,46 @@ def list_absent_users(db_cursor: MySQLCursor):
     Args:
         db_cursor (MySQLCursor): The database cursor.
     """
-    print("\nList of users who haven't purchased something in 60 days"
-          " and their normally purchased products:")
-    try:
-        query = "CALL GetInactiveUsersAndCommonPurchases()"
-        db_cursor.execute(query)
-        rows = db_cursor.fetchall()
 
-        if not rows:
+    try:
+        inactiveUsers_query = "CALL GetInactiveUsers()"
+        db_cursor.execute(inactiveUsers_query)
+        inactiveUsers_rows = db_cursor.fetchall()
+        db_cursor.nextset()
+
+        if not inactiveUsers_rows:
             print("\nNo inactive users to view")
         else:
-            print("UserID   FirstName   LastName    Email                       LastPurchase    ProductID   Name         Brand      NumOfPurchases")
-            print("-------------------------------------------------------------------------------------------------------------------------------")
-            for row in rows:
-                print(f"{row[0]:<8} {row[1]:<11} {row[2]:<11} {row[3]:<27} {str(row[4]).split(' ')[0]:<15} {row[5]:<11} {row[6]:<12} {row[7]:<10} {row[8]:<8}")  
+            print("\n\nUserID   FirstName   LastName    Email                       LastPurchase")
+            print("-------------------------------------------------------------------------")
+
+            # Outputs each inactive user
+            for row in inactiveUsers_rows:
+                print(f"{row[0]:<8} {row[1]:<11} {row[2]:<11} {row[3]:<27} {str(row[4]).split(' ')[0]:<15}")
+
+                userID = row[0]
+                db_cursor.execute("CALL GetUserNumOfTransactions(%s)", (userID,))
+                result = db_cursor.fetchone()
+
+                if (not result): # Determine if the user has no purchases at all
+                    db_cursor.nextset()
+                    db_cursor.execute("CALL GetAllTimeTop5Products()")
+                    allTimeRows = db_cursor.fetchall()
+                    print("\nTop 5 Products:\n")
+                    for row in allTimeRows:
+                        print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11}")
+                    print("\n\n-------------------------------------------------------------------------")
+                    db_cursor.nextset()
+                else:
+                    db_cursor.nextset()
+                    db_cursor.execute("CALL GetUserTop5Products(%s)", (userID,))
+                    allTimeRows = db_cursor.fetchall()
+                    print("\nTop 5 Products:\n")
+                    for row in allTimeRows:
+                        print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11}")
+                    print("\n\n-------------------------------------------------------------------------")
+                    db_cursor.nextset()
+
             db_cursor.nextset()
     except mysql.connector.Error as err:
             print(f"\nError retrieving list of inactive users: {err}")

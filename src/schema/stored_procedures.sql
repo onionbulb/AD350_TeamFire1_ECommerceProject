@@ -55,7 +55,7 @@ BEGIN
     WHERE ProductID = productToDelete;
 END $
 
--- Get the most popular products for a given time range
+-- Stored Procedure for getting the most popular products for a given time range
 CREATE PROCEDURE GetMostPopularProducts(
 	IN rangeStart DATETIME,
     IN rangeEnd DATETIME 
@@ -81,7 +81,7 @@ BEGIN
     LIMIT 5;
 END $
 
--- Get the least popular products for a given time range
+-- Stored procedure for getting the least popular products for a given time range
 CREATE PROCEDURE GetLeastPopularProducts(
 	IN rangeStart DATETIME,
     IN rangeEnd DATETIME 
@@ -106,41 +106,91 @@ BEGIN
     ORDER BY WeightedAvgRating
     LIMIT 5;
 END $
-    
- -- Get inactive users and their commonly purchased products
-CREATE PROCEDURE GetInactiveUsersAndCommonPurchases()
+
+-- Stored procedure for getting a list of inactive users
+CREATE PROCEDURE GetInactiveUsers()
 BEGIN
-	-- CTE to retrieve last purchase date of users
     WITH GetLastPurchase AS (
         SELECT T.BuyerID, MAX(T.DateTime) AS LastPurchase
 		FROM Transactions AS T
 		GROUP BY T.BuyerID
+    )
+    
+	SELECT U.UserID, U.FirstName, U.LastName, U.Email, LP.LastPurchase
+	FROM Users AS U
+	LEFT JOIN GetLastPurchase AS LP ON U.UserID = LP.BuyerID
+	-- Get the date 2 months ago and check if the user's
+	-- last purchase date is older than it
+	WHERE LP.LastPurchase IS NULL OR LP.LastPurchase < DATE_SUB(CURDATE(), INTERVAL 2 MONTH);
+END $
+
+CREATE PROCEDURE GetUserNumOfTransactions(
+	IN UserID INTEGER
+)
+BEGIN
+    	SELECT COUNT(*) AS NumOfTransactions
+		FROM Transactions AS T
+		LEFT JOIN Products AS P
+		ON T.ProductID = P.ProductID
+		WHERE UserID = T.BuyerID;
+END $
+
+-- Stored procedure for getting the top 5 popular products of all time
+CREATE PROCEDURE GetAllTimeTop5Products ()
+BEGIN
+    -- CTE to receive average rating per product
+	 WITH GetAvgRating AS (
+		SELECT ProductID, AVG(Rating) AS AvgRating
+		FROM Reviews
+		GROUP BY ProductID
+    )
+
+		SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount,
+			ROUND(LEAST((COUNT(T.ProductID) * 0.7 + R.AvgRating * 0.3), 5), 2) AS WeightedAvgRating
+		FROM Products AS P
+		INNER JOIN Transactions AS T
+			ON P.ProductID = T.ProductID
+		LEFT JOIN GetAvgRating AS R
+				ON P.ProductID = R.ProductID
+		INNER JOIN Users AS U ON U.UserID = T.BuyerID
+		GROUP BY P.ProductID
+		ORDER BY WeightedAvgRating DESC
+		LIMIT 5;
+
+END $
+
+CREATE PROCEDURE GetUserTop5Products(
+	IN UserID INTEGER
+)
+BEGIN
+	-- CTE to receive average rating per product
+	 WITH GetAvgRating AS (
+		SELECT ProductID, AVG(Rating) AS AvgRating
+		FROM Reviews
+		GROUP BY ProductID
     ),
     
-    -- CTE to get inactive users
-	GetInactiveUsers AS (
-		SELECT U.UserID, U.FirstName, U.LastName, U.Email, LP.LastPurchase
-        FROM Users AS U
-        LEFT JOIN GetLastPurchase AS LP ON U.UserID = LP.BuyerID
-        -- Get the date 2 months ago and check if the user's
-        -- last purchase date is older than it
-        WHERE LP.LastPurchase IS NULL OR LP.LastPurchase < DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
-    ),
-    
-    -- CTE to get a user's most commonly purchased item
-    GetCommonPurchase AS (
-		SELECT T.ProductID, T.BuyerID, COUNT(*) AS NumOfPurchases
-		FROM Users AS U
-		INNER JOIN Transactions AS T ON U.UserID = T.BuyerID
-		GROUP BY T.ProductID, T.BuyerID
-        ORDER BY NumOfPurchases DESC
-	)
-    
-	SELECT U.UserID, U.FirstName, U.LastName, U.Email, U.LastPurchase, CP.ProductID, P.Name, P.Brand, CP.NumOfPurchases
-    FROM GetInactiveUsers AS U
-    INNER JOIN GetCommonPurchase AS CP ON U.UserID = CP.BuyerID
-    LEFT JOIN Products AS P ON CP.ProductID = P.ProductID;
-    
+    -- CTE to receieve a user's purchased product history
+    GetUserPurchases AS (
+		SELECT T.ProductID, P.Name, P.Brand, P.SellPrice
+		FROM Transactions AS T
+		LEFT JOIN Products AS P
+		ON T.ProductID = P.ProductID
+		WHERE UserID = T.BuyerID
+    )
+
+		-- Does not count repeated product purchases
+		SELECT P.ProductID, P.Name, P.Brand, P.SellPrice,
+			ROUND(LEAST((COUNT(T.ProductID) * 0.7 + R.AvgRating * 0.3), 5), 2) AS WeightedAvgRating
+		FROM GetUserPurchases AS P
+		INNER JOIN Transactions AS T
+			ON P.ProductID = T.ProductID
+		LEFT JOIN GetAvgRating AS R
+				ON P.ProductID = R.ProductID
+		INNER JOIN Users AS U ON U.UserID = T.BuyerID
+		GROUP BY P.ProductID
+		ORDER BY WeightedAvgRating DESC
+		LIMIT 5;
 END $
 
 DELIMITER ;
