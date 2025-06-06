@@ -52,7 +52,7 @@ CREATE PROCEDURE DeleteProductFromInventory(
 )
 BEGIN
     DELETE FROM Inventory
-    WHERE ProductID = product;
+    WHERE ProductID = productToDelete;
 END $
 
 -- Get the most popular products for a given time range
@@ -84,16 +84,6 @@ BEGIN
     ORDER BY TransactionCount
     LIMIT 5;
 END $
-
--- Get inactive users and their commonly purchased products
-CREATE PROCEDURE GetInactiveUsersAndCommonPurchases()
-BEGIN
-	-- CTE to retrieve last purchase date of users
-    WITH GetLastPurchase AS (
-        SELECT T.BuyerID, MAX(T.DateTime) AS LastPurchase
-		FROM Transactions AS T
-		GROUP BY T.BuyerID
-    ),
     
  -- Get inactive users and their commonly purchased products
 CREATE PROCEDURE GetInactiveUsersAndCommonPurchases()
