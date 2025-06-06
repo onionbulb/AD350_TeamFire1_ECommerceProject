@@ -25,7 +25,7 @@ INSERT INTO Inventory (ProductID, Quantity)
 VALUES  (1, 24),
         (2, 19),
         (3, 85),
-        (4, 36),
+        (4, 50),
         (5, 120),
         (6, 44),
         (7, 190),

@@ -424,7 +424,7 @@ def list_most_popular_products(db_cursor: MySQLCursor):
         db_cursor.execute(query, args)
         rows = db_cursor.fetchall()
         
-        if not db_cursor:
+        if not rows:
             print("\nNo available products to show.")
         else:
             print("\nProductID       Name                      Brand      SellPrice            TransactionCount")
@@ -455,7 +455,7 @@ def list_least_popular_products(db_cursor: MySQLCursor):
         db_cursor.execute(query, args)
         rows = db_cursor.fetchall()
 
-        if not db_cursor:
+        if not rows:
             print("\nNo available products to show.")
         else:
             print("\nProductID       Name                      Brand      SellPrice            TransactionCount")
@@ -482,16 +482,16 @@ def list_absent_users(db_cursor: MySQLCursor):
         db_cursor.execute(query)
         rows = db_cursor.fetchall()
 
-        if not db_cursor:
+        if not rows:
             print("\nNo inactive users to view")
         else:
             print("UserID   FirstName   LastName    Email                       LastPurchase    ProductID   Name         Brand      NumOfPurchases")
             print("-------------------------------------------------------------------------------------------------------------------------------")
             for row in rows:
                 print(f"{row[0]:<8} {row[1]:<11} {row[2]:<11} {row[3]:<27} {str(row[4]).split(' ')[0]:<15} {row[5]:<11} {row[6]:<12} {row[7]:<10} {row[8]:<8}")  
-                db_cursor.nextset()
+            db_cursor.nextset()
     except mysql.connector.Error as err:
-            print(f"\nError retrieving least popular products from a time range: {err}")
+            print(f"\nError retrieving list of inactive users: {err}")
     
 
 def main():

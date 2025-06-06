@@ -57,8 +57,8 @@ END $
 
 -- Get the most popular products for a given time range
 CREATE PROCEDURE GetMostPopularProducts(
-	IN rangeStart DATE,
-    IN rangeEnd DATE 
+	IN rangeStart DATETIME,
+    IN rangeEnd DATETIME 
 )
 BEGIN
 	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount
@@ -72,8 +72,8 @@ END $
 
 -- Get the least popular products for a given time range
 CREATE PROCEDURE GetLeastPopularProducts(
-	IN rangeStart DATE,
-    IN rangeEnd DATE 
+	IN rangeStart DATETIME,
+    IN rangeEnd DATETIME 
 )
 BEGIN
 	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount    
