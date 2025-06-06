@@ -53,7 +53,7 @@ def display_menu():
     print("4. Delete a product from inventory.")
     print("5. Get a list of the most popular products for a date/time range.")
     print("6. Get a list of the least popular products for a date/time range.")
-    print("7. Get a list of users who haven't purchased something in 90 days "
+    print("7. Get a list of users who haven't purchased something in 60 days "
           + "and their normally purchased products.")
     print("8. Exit the program.")
     print("----------------------------\n")
@@ -392,11 +392,10 @@ def delete_product_from_inventory(db_cursor: MySQLCursor, db_connection: MySQLCo
 
     print("\nDelete product from inventory form:")
     product_id = get_product_id(db_cursor)
-    print(f"Product id: {product_id}")
     if confirm_change():
         try:
             args = [product_id]
-            db_cursor.callproc('DeleteProduct', args)
+            db_cursor.callproc('DeleteProductFromInventory', args)
             # Commit the change
             db_connection.commit()
             print(f"Product ID {product_id} deleted from inventory successfully.")
@@ -418,20 +417,21 @@ def list_most_popular_products(db_cursor: MySQLCursor):
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
-    print(f"\nStart datetime: {start}, end datetime: {end}")
+    print(f"\nDisplaying popular products from {start} to {end}:")
     try:
         args = [start, end]
         query = "CALL GetMostPopularProducts(%s, %s)"
         db_cursor.execute(query, args)
-        results = db_cursor.fetchall()
+        rows = db_cursor.fetchall()
         
-        if not results:
+        if not db_cursor:
             print("\nNo available products to show.")
         else:
-            print("\nProductID      Name                      Brand      Description            SellPrice")
-            print("------------------------------------------------------------------------------------")
-            for row in results:
-                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")       
+            print("\nProductID       Name                      Brand      SellPrice            TransactionCount")
+            print("-------------------------------------------------------------------------------------------")
+            for row in rows:
+                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")  
+            db_cursor.nextset()
     except mysql.connector.Error as err:
             print(f"\nError retrieving most popular products from a time range: {err}")
 
@@ -448,33 +448,34 @@ def list_least_popular_products(db_cursor: MySQLCursor):
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
-    print(f"\nStart datetime: {start}, end datetime: {end}")
+    print(f"\nDisplaying least popular products from {start} to {end}:")
     try:
         args = [start, end]
         query = "CALL GetLeastPopularProducts(%s, %s)"
         db_cursor.execute(query, args)
-        results = db_cursor.fetchall()
+        rows = db_cursor.fetchall()
 
-        if not results:
+        if not db_cursor:
             print("\nNo available products to show.")
         else:
             print("\nProductID      Name                      Brand      Description            SellPrice")
             print("------------------------------------------------------------------------------------")
-            for row in results:
-                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")       
+            for row in rows:
+                print(f"{row[0]:<13} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")   
+            db_cursor.nextset()    
     except mysql.connector.Error as err:
             print(f"\nError retrieving least popular products from a time range: {err}")
 
 
 def list_absent_users(db_cursor: MySQLCursor):
     """
-    Gets a list of users who haven't purchased something in 90 days,
+    Gets a list of users who haven't purchased something in 60 days,
     and their normally purchased products.
 
     Args:
         db_cursor (MySQLCursor): The database cursor.
     """
-    print("\nList of users who haven't purchased something in 90 days"
+    print("\nList of users who haven't purchased something in 60 days"
           " and their normally purchased products:")
     try:
         query = "CALL GetInactiveUsersAndCommonPurchases()"
