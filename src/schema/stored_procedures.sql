@@ -61,12 +61,23 @@ CREATE PROCEDURE GetMostPopularProducts(
     IN rangeEnd DATETIME 
 )
 BEGIN
-	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount
+	-- CTE to receive average rating per product
+	WITH GetAvgRating AS (
+		SELECT ProductID, AVG(Rating) AS AvgRating
+		FROM Reviews
+		GROUP BY ProductID
+    )
+
+	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount,
+		ROUND(LEAST((COUNT(T.ProductID) * 0.7 + R.AvgRating * 0.3), 5), 2) AS WeightedAvgRating
     FROM Products AS P
-    INNER JOIN Transactions AS T ON P.ProductID = T.ProductID
+    INNER JOIN Transactions AS T
+		ON P.ProductID = T.ProductID
+	LEFT JOIN GetAvgRating AS R
+		ON P.ProductID = R.ProductID
     WHERE T.DateTime BETWEEN rangeStart AND rangeEnd
     GROUP BY P.ProductID
-    ORDER BY TransactionCount DESC
+    ORDER BY WeightedAvgRating DESC
     LIMIT 5;
 END $
 
@@ -76,12 +87,23 @@ CREATE PROCEDURE GetLeastPopularProducts(
     IN rangeEnd DATETIME 
 )
 BEGIN
-	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount    
+	-- CTE to receive average rating per product
+	WITH GetAvgRating AS (
+		SELECT ProductID, AVG(Rating) AS AvgRating
+		FROM Reviews
+		GROUP BY ProductID
+    )
+    
+	SELECT P.ProductID, P.Name, P.Brand, P.SellPrice, COUNT(T.ProductID) AS TransactionCount,
+		ROUND(LEAST((COUNT(T.ProductID) * 0.7 + R.AvgRating * 0.3), 5), 2) AS WeightedAvgRating
     FROM Products AS P
-    INNER JOIN Transactions AS T ON P.ProductID = T.ProductID
+    INNER JOIN Transactions AS T
+		ON P.ProductID = T.ProductID
+	LEFT JOIN GetAvgRating AS R
+		ON P.ProductID = R.ProductID
     WHERE T.DateTime BETWEEN rangeStart AND rangeEnd
     GROUP BY P.ProductID
-    ORDER BY TransactionCount
+    ORDER BY WeightedAvgRating
     LIMIT 5;
 END $
     

@@ -102,8 +102,11 @@ INSERT INTO Reviews (ProductID, UserID, Rating, Review)
 VALUES  (1, 1, 5, 'Does it blend? It truly blends everything!'),
         (2, 2, 3, 'This sofa eats things. Comfy but not worth the price.'),
         (3, 8, 2, 'The fabric tore quickly.'),
+        (3, 7, 1, 'Came in the wrong size.'),
         (4, 10, 5, 'Incredible noise cancellation.'),
-        (5, 7, 4, 'Great water shoes!');
+        (4, 3, 3.5, 'Very good! Bought it for the whole family!'),
+        (5, 7, 4, 'Great water shoes!'),
+		(8, 3, 4, 'Solid air mattress for a reasonable price.');
 
 INSERT INTO Reviews (ProductID, UserID, Rating, Review, DateTime)
 VALUES  (6, 4, 1, 'Doesn\'t go very fast and broke after the warranty.', '2025-05-20 04:00:00'),

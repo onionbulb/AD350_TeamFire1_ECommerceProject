@@ -423,14 +423,14 @@ def list_most_popular_products(db_cursor: MySQLCursor):
         query = "CALL GetMostPopularProducts(%s, %s)"
         db_cursor.execute(query, args)
         rows = db_cursor.fetchall()
-        
+
         if not rows:
             print("\nNo available products to show.")
         else:
-            print("\nProductID       Name                      Brand      SellPrice            TransactionCount")
-            print("-------------------------------------------------------------------------------------------")
+            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     AvgRating")
+            print("---------------------------------------------------------------------------------------------------------")
             for row in rows:
-                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")  
+                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<20} {row[5]:<10}")  
             db_cursor.nextset()
     except mysql.connector.Error as err:
             print(f"\nError retrieving most popular products from a time range: {err}")
@@ -458,10 +458,10 @@ def list_least_popular_products(db_cursor: MySQLCursor):
         if not rows:
             print("\nNo available products to show.")
         else:
-            print("\nProductID       Name                      Brand      SellPrice            TransactionCount")
-            print("-------------------------------------------------------------------------------------------")
+            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     AvgRating")
+            print("---------------------------------------------------------------------------------------------------------")
             for row in rows:
-                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<10}")  
+                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<20} {float(row[5]):<10}")  
             db_cursor.nextset() 
     except mysql.connector.Error as err:
             print(f"\nError retrieving least popular products from a time range: {err}")
