@@ -45,7 +45,8 @@ VALUES  ('Alice', 'Johnson', 'alice.johnson@email.com', '123 Elm St', 'Seattle',
         ('Michael', 'Anderson', 'michael.anderson@email.com', '550 Walnut Ave', 'Austin', 'TX', '78701', 'USA'),
         ('Jessica', 'Harris', 'jessica.harris@email.com', '789 Spruce Ct', 'Boston', 'MA', '02108', 'USA'),
         ('Daniel', 'Roberts', 'daniel.roberts@email.com', '1200 Palm Dr', 'Miami', 'FL', '33101', 'USA'),
-        ('Lauren', 'White', 'lauren.white@email.com', '900 Redwood Rd', 'Seattle', 'WA', '98109', 'USA');
+        ('Lauren', 'White', 'lauren.white@email.com', '900 Redwood Rd', 'Seattle', 'WA', '98109', 'USA')
+        ('Tyler', 'Jackson', 'tylerjackson@email.com', '455 Rexford Hill', 'Beverly Hills', 'CA', '90210', 'USA');
 
 -- Add rows to Buyers
 INSERT INTO Buyers (UserID, LoyaltyStatus)

@@ -124,6 +124,7 @@ BEGIN
 	WHERE LP.LastPurchase IS NULL OR LP.LastPurchase < DATE_SUB(CURDATE(), INTERVAL 2 MONTH);
 END $
 
+-- Stored procedure for getting a user's total number of transactions
 CREATE PROCEDURE GetUserNumOfTransactions(
 	IN UserID INTEGER
 )
@@ -159,6 +160,7 @@ BEGIN
 
 END $
 
+-- Stored procedure to get a user's top 5 products
 CREATE PROCEDURE GetUserTop5Products(
 	IN UserID INTEGER
 )
