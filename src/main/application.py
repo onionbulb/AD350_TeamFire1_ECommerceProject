@@ -54,7 +54,7 @@ def display_menu():
     print("5. Get a list of the most popular products for a date/time range.")
     print("6. Get a list of the least popular products for a date/time range.")
     print("7. Get a list of users who haven't purchased something in 60 days "
-          + "and their normally purchased products.")
+          + "and products to promote.")
     print("8. Exit the program.")
     print("----------------------------\n")
 
@@ -427,7 +427,7 @@ def list_most_popular_products(db_cursor: MySQLCursor):
         if not rows:
             print("\nNo available products to show.")
         else:
-            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     AvgRating")
+            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     WeightedAvgRating")
             print("---------------------------------------------------------------------------------------------------------")
             for row in rows:
                 print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<20} {row[5]:<10}")  
@@ -458,7 +458,7 @@ def list_least_popular_products(db_cursor: MySQLCursor):
         if not rows:
             print("\nNo available products to show.")
         else:
-            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     AvgRating")
+            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     WeightedAvgRating")
             print("---------------------------------------------------------------------------------------------------------")
             for row in rows:
                 print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<20} {float(row[5]):<10}")  
@@ -467,7 +467,7 @@ def list_least_popular_products(db_cursor: MySQLCursor):
             print(f"\nError retrieving least popular products from a time range: {err}")
 
 
-def list_absent_users(db_cursor: MySQLCursor):
+def list_inactive_users(db_cursor: MySQLCursor):
     """
     Gets a list of users who haven't purchased something in 60 days,
     and their normally purchased products.
@@ -485,35 +485,36 @@ def list_absent_users(db_cursor: MySQLCursor):
         if not inactiveUsers_rows:
             print("\nNo inactive users to view")
         else:
-            print("\n\nUserID   FirstName   LastName    Email                       LastPurchase")
-            print("-------------------------------------------------------------------------")
+            print("\n\nList of inactive users and recommended promotional products")
+            print("-----------------------------------------------------------\n")
 
             # Outputs each inactive user
             for row in inactiveUsers_rows:
-                print(f"{row[0]:<8} {row[1]:<11} {row[2]:<11} {row[3]:<27} {str(row[4]).split(' ')[0]:<15}")
+                print(f"UserID: {row[0]:<8} \nFirstName: {row[1]:<11}")
+                print(f"LastName: {row[2]:<11} \nEmail: {row[3]:<27} \nLastPurchase: {str(row[4]).split(' ')[0]:<15}")
 
                 userID = row[0]
                 db_cursor.execute("CALL GetUserNumOfTransactions(%s)", (userID,))
                 result = db_cursor.fetchone()
 
-                if (not result): # Determine if the user has no purchases at all
+                if (result[0] == 0):
+                    # No purchase history; get All-Time Top 5
                     db_cursor.nextset()
                     db_cursor.execute("CALL GetAllTimeTop5Products()")
-                    allTimeRows = db_cursor.fetchall()
-                    print("\nTop 5 Products:\n")
-                    for row in allTimeRows:
-                        print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11}")
-                    print("\n\n-------------------------------------------------------------------------")
-                    db_cursor.nextset()
+                    productRows = db_cursor.fetchall()
+
                 else:
+                    # Existing purchase history; get user's Top 5
                     db_cursor.nextset()
                     db_cursor.execute("CALL GetUserTop5Products(%s)", (userID,))
-                    allTimeRows = db_cursor.fetchall()
-                    print("\nTop 5 Products:\n")
-                    for row in allTimeRows:
-                        print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11}")
-                    print("\n\n-------------------------------------------------------------------------")
-                    db_cursor.nextset()
+                    productRows = db_cursor.fetchall()
+
+                # Print products
+                print("\nProducts to promote based on user's purchase history:\n")
+                for row in productRows:
+                    print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11} Rating: {(row[3]):<11}")
+                print("\n\n-------------------------------------------------------------------------\n")
+                db_cursor.nextset()
 
             db_cursor.nextset()
     except mysql.connector.Error as err:
@@ -548,7 +549,7 @@ def main():
         elif user_menu_choice == 6:
             list_least_popular_products(db_cursor)
         elif user_menu_choice == 7:
-            list_absent_users(db_cursor)
+            list_inactive_users(db_cursor)
         elif user_menu_choice == 8:
             print("\nThank you for visiting! Exiting...\n")
             db_cursor.close()
