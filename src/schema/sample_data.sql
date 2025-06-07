@@ -25,7 +25,7 @@ INSERT INTO Inventory (ProductID, Quantity)
 VALUES  (1, 24),
         (2, 19),
         (3, 85),
-        (4, 36),
+        (4, 50),
         (5, 120),
         (6, 44),
         (7, 190),
@@ -79,22 +79,34 @@ VALUES  (1, 1, 2, 3),
         (2, 2, 1, 1),
         (3, 7, 2, 10),
         (3, 8, 2, 5),
-        (4, 3, 10, 4);
+        (4, 3, 2, 4),
+        (4, 6, 10, 18),
+        (7, 5, 1, 29),
+        (4, 3, 8, 5),
+        (4, 3, 10, 14),
+        (8, 1, 3, 6),
+        (8, 3, 6, 7);
 
 INSERT INTO Transactions (ProductID, BuyerID, SellerID, Quantity, DateTime)
 VALUES  (5, 6, 5, 100, '2025-05-23 06:00:00'),
-        (6, 10, 4, 40, '2025-05-22 08:30:00'),
+        (6, 8, 4, 40, '2025-05-22 08:30:00'),
         (8, 4, 6, 20, '2025-05-22 08:30:00'),
         (9, 5, 3, 10, '2025-05-21 16:45:30'),
-        (10, 6, 9, 30, '2025-05-21 22:38:42');
+        (10, 6, 9, 30, '2025-05-21 22:38:42'),
+		(3, 10, 4, 20, '2025-02-18 07:00:00'),
+		(1, 9, 4, 20, '2025-02-14 19:30:00'),
+        (3, 10, 4, 20, '2025-01-29 04:00:00');
 
 -- Add rows to Reviews
 INSERT INTO Reviews (ProductID, UserID, Rating, Review)
 VALUES  (1, 1, 5, 'Does it blend? It truly blends everything!'),
         (2, 2, 3, 'This sofa eats things. Comfy but not worth the price.'),
         (3, 8, 2, 'The fabric tore quickly.'),
+        (3, 7, 1, 'Came in the wrong size.'),
         (4, 10, 5, 'Incredible noise cancellation.'),
-        (5, 7, 4, 'Great water shoes!');
+        (4, 3, 3.5, 'Very good! Bought it for the whole family!'),
+        (5, 7, 4, 'Great water shoes!'),
+		(8, 3, 4, 'Solid air mattress for a reasonable price.');
 
 INSERT INTO Reviews (ProductID, UserID, Rating, Review, DateTime)
 VALUES  (6, 4, 1, 'Doesn\'t go very fast and broke after the warranty.', '2025-05-20 04:00:00'),

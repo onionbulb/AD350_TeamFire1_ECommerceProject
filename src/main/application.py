@@ -53,7 +53,7 @@ def display_menu():
     print("4. Delete a product from inventory.")
     print("5. Get a list of the most popular products for a date/time range.")
     print("6. Get a list of the least popular products for a date/time range.")
-    print("7. Get a list of users who haven't purchased something in 90 days "
+    print("7. Get a list of users who haven't purchased something in 60 days "
           + "and their normally purchased products.")
     print("8. Exit the program.")
     print("----------------------------\n")
@@ -392,9 +392,17 @@ def delete_product_from_inventory(db_cursor: MySQLCursor, db_connection: MySQLCo
 
     print("\nDelete product from inventory form:")
     product_id = get_product_id(db_cursor)
-    print(f"Product id: {product_id}")
     if confirm_change():
-        print("Delete the product")
+        try:
+            args = [product_id]
+            db_cursor.callproc('DeleteProductFromInventory', args)
+            # Commit the change
+            db_connection.commit()
+            print(f"Product ID {product_id} deleted from inventory successfully.")
+        except mysql.connector.Error as err:
+            print(f"\nError deleting product ID {product_id} from inventory: {err}")
+            # Undo change if commit fails
+            db_connection.rollback()
 
 
 def list_most_popular_products(db_cursor: MySQLCursor):
@@ -409,7 +417,23 @@ def list_most_popular_products(db_cursor: MySQLCursor):
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
-    print(f"Start datetime: {start}, end datetime: {end}")
+    print(f"\nDisplaying popular products from {start} to {end}:")
+    try:
+        args = [start, end]
+        query = "CALL GetMostPopularProducts(%s, %s)"
+        db_cursor.execute(query, args)
+        rows = db_cursor.fetchall()
+
+        if not rows:
+            print("\nNo available products to show.")
+        else:
+            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     AvgRating")
+            print("---------------------------------------------------------------------------------------------------------")
+            for row in rows:
+                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<20} {row[5]:<10}")  
+            db_cursor.nextset()
+    except mysql.connector.Error as err:
+            print(f"\nError retrieving most popular products from a time range: {err}")
 
 
 def list_least_popular_products(db_cursor: MySQLCursor):
@@ -424,21 +448,77 @@ def list_least_popular_products(db_cursor: MySQLCursor):
     datetime_range = get_datetime_range()
     start = datetime_range[0]
     end = datetime_range[1]
-    print(start)
-    print(end)
+    print(f"\nDisplaying least popular products from {start} to {end}:")
+    try:
+        args = [start, end]
+        query = "CALL GetLeastPopularProducts(%s, %s)"
+        db_cursor.execute(query, args)
+        rows = db_cursor.fetchall()
+
+        if not rows:
+            print("\nNo available products to show.")
+        else:
+            print("\nProductID       Name                      Brand      SellPrice            TransactionCount     AvgRating")
+            print("---------------------------------------------------------------------------------------------------------")
+            for row in rows:
+                print(f"{row[0]:<15} {row[1]:<25} {row[2]:<10} {row[3]:<20} {row[4]:<20} {float(row[5]):<10}")  
+            db_cursor.nextset() 
+    except mysql.connector.Error as err:
+            print(f"\nError retrieving least popular products from a time range: {err}")
 
 
 def list_absent_users(db_cursor: MySQLCursor):
     """
-    Gets a list of users who haven't purchased something in 90 days,
+    Gets a list of users who haven't purchased something in 60 days,
     and their normally purchased products.
 
     Args:
         db_cursor (MySQLCursor): The database cursor.
     """
-    print("\nList of users who haven't purchased something in 90 days"
-          " and their normally purchased products:")
 
+    try:
+        inactiveUsers_query = "CALL GetInactiveUsers()"
+        db_cursor.execute(inactiveUsers_query)
+        inactiveUsers_rows = db_cursor.fetchall()
+        db_cursor.nextset()
+
+        if not inactiveUsers_rows:
+            print("\nNo inactive users to view")
+        else:
+            print("\n\nUserID   FirstName   LastName    Email                       LastPurchase")
+            print("-------------------------------------------------------------------------")
+
+            # Outputs each inactive user
+            for row in inactiveUsers_rows:
+                print(f"{row[0]:<8} {row[1]:<11} {row[2]:<11} {row[3]:<27} {str(row[4]).split(' ')[0]:<15}")
+
+                userID = row[0]
+                db_cursor.execute("CALL GetUserNumOfTransactions(%s)", (userID,))
+                result = db_cursor.fetchone()
+
+                if (not result): # Determine if the user has no purchases at all
+                    db_cursor.nextset()
+                    db_cursor.execute("CALL GetAllTimeTop5Products()")
+                    allTimeRows = db_cursor.fetchall()
+                    print("\nTop 5 Products:\n")
+                    for row in allTimeRows:
+                        print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11}")
+                    print("\n\n-------------------------------------------------------------------------")
+                    db_cursor.nextset()
+                else:
+                    db_cursor.nextset()
+                    db_cursor.execute("CALL GetUserTop5Products(%s)", (userID,))
+                    allTimeRows = db_cursor.fetchall()
+                    print("\nTop 5 Products:\n")
+                    for row in allTimeRows:
+                        print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11}")
+                    print("\n\n-------------------------------------------------------------------------")
+                    db_cursor.nextset()
+
+            db_cursor.nextset()
+    except mysql.connector.Error as err:
+            print(f"\nError retrieving list of inactive users: {err}")
+    
 
 def main():
     """Main application driver."""
