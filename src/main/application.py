@@ -512,7 +512,7 @@ def list_inactive_users(db_cursor: MySQLCursor):
                 # Print products
                 print("\nProducts to promote based on user's purchase history:\n")
                 for row in productRows:
-                    print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11} Rating: {(row[3]):<11}")
+                    print(f"ProductID: {row[0]:<8} Name: {row[1]:<15} Brand: {row[2]:<11} Global Rating: {(row[3]):<11}")
                 print("\n\n-------------------------------------------------------------------------\n")
                 db_cursor.nextset()
 
